@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from patient.models import Patient
-from nurse.models import Nurse
+# from nurse.models import Nurse
 
 class Nurse(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -15,18 +15,30 @@ class Nurse(models.Model):
     profile_pic = models.ImageField(upload_to='Nurse/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     availability = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+
+
 
 
     def __str__(self):
         return self.name
 
 class Bed(models.Model):
-    bed_type = models.CharField(max_length=100, null=True, blank=True)
+
+    BED_TYPE_CHOICES = (
+        ("General", "General"),
+        ("Private", "Private"),
+        ("Deluxe", "Deluxe"),
+
+
+    )
+
+    bed_type = models.CharField(choices=BED_TYPE_CHOICES, max_length=100, null=True, blank=True)
     number = models.CharField(max_length=100, null=True, blank=True)
     is_occupied = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
+        return self.number
 
 class Observation(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)

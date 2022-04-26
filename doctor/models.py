@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from patient.models import Patient
+from nurse.models import Nurse
+
 class Doctor(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -17,7 +20,7 @@ class Doctor(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return self.user.first_name
 
 class Treatment(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)

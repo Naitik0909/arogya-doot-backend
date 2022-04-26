@@ -1,3 +1,9 @@
 django
 djangorestframework
 pillow
+djangorestframework-simplejwt
+asgiref
+coverage
+django-cors-headers
+pytz
+sqlparse
