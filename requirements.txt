@@ -9,3 +9,4 @@ pytz
 sqlparse
 django-environ
 django_heroku
+gunicorn
