@@ -10,3 +10,4 @@ sqlparse
 django-environ
 django_heroku
 gunicorn
+drf-yasg

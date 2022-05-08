@@ -6,6 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status, generics, pagination
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from users.serializers import RegisterUserSerializer
 from .models import Patient
@@ -14,6 +16,25 @@ from nurse.models import Bed, Nurse
 
 class RegisterNurse(APIView):
     
+
+    @swagger_auto_schema(request_body=openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'username': openapi.Schema(type=openapi.TYPE_STRING, description='Same as Email'),
+        'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email'),
+        'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='First name'),
+        'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Last name'),
+        'password': openapi.Schema(type=openapi.TYPE_STRING, description='Password'),
+        'password2': openapi.Schema(type=openapi.TYPE_STRING, description='Confirm Password'),
+        'phone': openapi.Schema(type=openapi.TYPE_STRING, description='Phone number'),
+        'dob': openapi.Schema(type=openapi.TYPE_STRING, description='DOB in this format: YYYY-MM-DD'),
+        'address': openapi.Schema(type=openapi.TYPE_STRING, description='Address'),
+        'blood_group': openapi.Schema(type=openapi.TYPE_STRING, description='Blood group'),
+        'age': openapi.Schema(type=openapi.TYPE_INTEGER, description='Age'),
+        'aadhaar': openapi.Schema(type=openapi.TYPE_STRING, description='Aadhaar number'),
+        'gender': openapi.Schema(type=openapi.TYPE_STRING, description='Gender- Male/Female/Others'),
+    }),
+    responses={400: 'Bad Request'})
     def post(self, request):
         try:
             register = RegisterUserSerializer(data=request.data)
