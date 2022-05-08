@@ -6,8 +6,10 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import RegisterUserSerializer, BlacklistTokenSerializer
+
+from .serializers import RegisterUserSerializer, BlacklistTokenSerializer, CustomTokenObtainPairSerializer
 
 class RegisterUser(APIView):
     permission_classes = [AllowAny]
@@ -37,3 +39,6 @@ class BlacklistToken(generics.GenericAPIView):   # For logout
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+class LoginUser(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

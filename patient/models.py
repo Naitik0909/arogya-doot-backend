@@ -45,4 +45,4 @@ class Patient(models.Model):
     
 
     def __str__(self):
-        return self.name
+        return self.user.first_name

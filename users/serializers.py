@@ -1,8 +1,14 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
-from rest_framework.validators import UniqueValidator
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.password_validation import validate_password
 
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from patient.models import Patient
+from doctor.models import Doctor
+from nurse.models import Nurse
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -49,3 +55,24 @@ class BlacklistTokenSerializer(serializers.Serializer):
             raise serializers.ValidationError({"refresh_token": 'Token too short'})
 
         return attrs
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        refresh = self.get_token(self.user)
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+        user_type = None
+        user = self.user
+        if Patient.objects.filter(user = user).exists():
+            user_type = 'Patient'
+        elif Nurse.objects.filter(user=user).exists():
+            user_type = 'Nurse'
+        elif Doctor.objects.filter(user=user).exists():
+            user_type = 'Doctor'
+        data['user'] = user_type
+        return data
+    default_error_messages = {
+        'no_active_account': _('Please enter correct credentials.')
+    }
