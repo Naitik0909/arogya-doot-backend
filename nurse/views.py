@@ -3,9 +3,8 @@ from django.http.response import JsonResponse
 from django.db import IntegrityError
 
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from rest_framework import status, generics, pagination
+from rest_framework.generics import GenericAPIView
+from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -71,8 +70,10 @@ class RegisterNurse(APIView):
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class NurseDashboard(APIView):
+class NurseDashboard(GenericAPIView):
     
+    serializer_class = PatientSerializer
+
     def get(self, request):
         try:
             user_id = request.data.get('access', '')
@@ -83,7 +84,7 @@ class NurseDashboard(APIView):
         try:
             nurse = Nurse.objects.get(user=user)
             patients = nurse.patients.all()
-            ser = PatientSerializer(patients, many=True)
+            ser = self.serializer_class(patients, many=True)
 
             return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
         except Exception as e:
@@ -97,15 +98,24 @@ class NurseDashboardDetail(APIView):
             user = get_user(user_id)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-class TreatmentAPI(APIView):
+
+class NurseTreatmentAPI(GenericAPIView):
+
+    serializer_class = TreatmentSerializer
+
     def get(self, request):
         try:
             user_id = request.data.get('access', '')
             user = get_user(user_id)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        nurse = Nurse.objects.get(user=user)
-        treatments = Treatment.objects.filter(nurse=nurse)
-        ser = TreatmentSerializer(treatments, many=True)
-        return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+        try:
+            patient_id = request.data.get('patient_id', '')
+            nurse = Nurse.objects.get(user=user)
+            treatments = Treatment.objects.filter(nurse=nurse, patient=Patient.objects.get(id=int(patient_id)))
+            ser = self.serializer_class(treatments, many=True)
+            return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+ 

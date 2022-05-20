@@ -43,9 +43,19 @@ class Doctor(models.Model):
         return self.user.first_name
 
 class Treatment(models.Model):
+
+    TREATMENT_CHOICES = (
+        ("Temperature", "Temperature"),
+        # ("Temperature", "Temperature"),
+        # ("Temperature", "Temperature"),
+        # ("Temperature", "Temperature"),
+        
+    )
+
     nurse = models.ForeignKey(Nurse, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    treatment = models.CharField(max_length=100, null=True, blank=True)
+    treatment_type = models.CharField(max_length=50, null=True, blank=True, choices=TREATMENT_CHOICES)
+    treatment_value = models.CharField(max_length=100, null=True, blank=True)
     detail = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)

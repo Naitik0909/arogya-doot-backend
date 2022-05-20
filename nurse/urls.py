@@ -2,10 +2,10 @@ from unicodedata import name
 from django.contrib import admin
 from django.urls import path
 
-from .views import RegisterNurse, NurseDashboard
+from . import views
 
 urlpatterns = [
-    path("register/", RegisterNurse.as_view(), name="register_nurse"),
-    path("dashboard/", NurseDashboard.as_view(), name="dashboard"),
-    # path("observations/")
+    path("register/", views.RegisterNurse.as_view(), name="register_nurse"),
+    path("dashboard/", views.NurseDashboard.as_view(), name="dashboard"),
+    path("treatments/", views.NurseTreatmentAPI.as_view())
 ]
