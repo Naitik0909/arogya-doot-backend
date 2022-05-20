@@ -36,13 +36,19 @@ class Patient(models.Model):
 
     consulting_doctor = models.ForeignKey("doctor.Doctor", on_delete=models.SET_NULL, null=True, blank=True)
     allocated_bed = models.OneToOneField("nurse.Bed", on_delete=models.SET_NULL, null=True, blank=True)
-    nurses = models.ManyToManyField("nurse.Nurse", blank=True)
 
     emergency_contact_name = models.CharField(max_length=100, null=True, blank=True)
     emergency_contact_phone = models.CharField(max_length=100, null=True, blank=True)
     emergency_contact_relation = models.CharField(max_length=100, null=True, blank=True)
 
+    is_treated = models.BooleanField(default=False)
+
     
 
     def __str__(self):
         return self.user.first_name
+
+class TreatmentHistory(models.Model):
+    
+    patient = models.ForeignKey('patient.Patient', on_delete=models.CASCADE)
+    nurse = models.ForeignKey('nurse.Nurse', on_delete=models.CASCADE)

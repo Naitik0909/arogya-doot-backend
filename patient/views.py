@@ -13,6 +13,7 @@ from users.serializers import RegisterUserSerializer
 from .models import Patient
 from doctor.models import Doctor
 from nurse.models import Bed
+from .utils import get_user, allocate_nurse
 
 class RegisterPatient(APIView):
     
@@ -35,20 +36,26 @@ class RegisterPatient(APIView):
         'age': openapi.Schema(type=openapi.TYPE_INTEGER, description='Age'),
         'aadhaar': openapi.Schema(type=openapi.TYPE_STRING, description='Aadhaar number'),
         'gender': openapi.Schema(type=openapi.TYPE_STRING, description='Gender- Male/Female/Others'),
-        'emergency_contact_name': openapi.Schema(type=openapi.TYPE_INTEGER, description='Emergency Contact Name'),
+        'emergency_contact_name': openapi.Schema(type=openapi.TYPE_STRING, description='Emergency Contact Name'),
         'emergency_contact_phone': openapi.Schema(type=openapi.TYPE_STRING, description='Emergency Contact Phone'),
         'emergency_contact_relation': openapi.Schema(type=openapi.TYPE_STRING, description='Emergency Contact Relation'),
     }),
     responses={400: 'Bad Request'})
     def post(self, request):
         try:
+            try:
+                doctor = Doctor.objects.get(id=int(request.data.get('doctor_id', '')))
+                bed = Bed.objects.filter(bed_type=request.data.get('bed_type', ''), is_occupied=False)[0]
+            except:
+                return JsonResponse(data={"error": "No beds Available for this bed type."}, status=status.HTTP_400_BAD_REQUEST)
+
             register = RegisterUserSerializer(data=request.data)
             if register.is_valid():
                 new_user = register.save()
                 if new_user:
-                    doctor = Doctor.objects.get(id=int(request.data.get('doctor_id', '')))
-                    bed = Bed.objects.filter(bed_type=request.data.get('bed_type', ''))[0]
+                    
                     try:
+                        print(bed)
                         patient = Patient.objects.create(
                             user=new_user,
                             phone=request.data.get('phone', ''),
@@ -65,8 +72,15 @@ class RegisterPatient(APIView):
                             emergency_contact_relation=request.data.get('emergency_contact_relation', ''),
 
                         )
+                        if allocate_nurse(patient):
+                            print("SUCCESS")
+                        else:
+                            print("ISSUE IN BED ALLOCATION")
+                        bed.is_occupied = True
+                        bed.save()
                     except IntegrityError as e:
-                        return Response({"message": "No Bed Available"}, status=status.HTTP_400_BAD_REQUEST)
+                        print(e)
+                        return Response({"error": "No Bed Available"}, status=status.HTTP_400_BAD_REQUEST)
                     
                     return JsonResponse(data={"patient_id": patient.id},status=status.HTTP_201_CREATED)
                 else:
@@ -76,3 +90,14 @@ class RegisterPatient(APIView):
         except Exception as e:
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class NursePatientDetails(APIView):
+
+    def get(self, request):
+        try:
+            token = request.data.get("access", "")
+            user = get_user(token)
+        except Exception as e:
+            return JsonResponse(data={"error" : str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        

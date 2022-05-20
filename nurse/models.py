@@ -32,14 +32,13 @@ class Nurse(models.Model):
     blood_group = models.CharField(choices=BLOOD_GROUP_CHOICES, max_length=5, null=True, blank=True)
     age = models.IntegerField(max_length=4, null=True, blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=10, null=True, blank=True)
+    patients = models.ManyToManyField("patient.Patient", blank=True)
 
     profile_pic = models.ImageField(upload_to='Nurse/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     availability = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
-
-
-
+    is_day_shift = models.BooleanField(default=True)
 
     def __str__(self):
         return self.user.first_name
@@ -60,12 +59,3 @@ class Bed(models.Model):
 
     def __str__(self):
         return self.number
-
-class Observation(models.Model):
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    nurse = models.ForeignKey(Nurse, on_delete=models.CASCADE)
-    observation = models.TextField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name

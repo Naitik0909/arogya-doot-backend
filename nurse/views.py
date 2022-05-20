@@ -11,8 +11,11 @@ from drf_yasg import openapi
 
 from users.serializers import RegisterUserSerializer
 from .models import Patient
-from doctor.models import Doctor
+from doctor.models import Doctor, Treatment
 from nurse.models import Bed, Nurse
+from patient.utils import get_user
+from patient.serializers import PatientSerializer
+from doctor.serializers import TreatmentSerializer
 
 class RegisterNurse(APIView):
     
@@ -33,10 +36,15 @@ class RegisterNurse(APIView):
         'age': openapi.Schema(type=openapi.TYPE_INTEGER, description='Age'),
         'aadhaar': openapi.Schema(type=openapi.TYPE_STRING, description='Aadhaar number'),
         'gender': openapi.Schema(type=openapi.TYPE_STRING, description='Gender- Male/Female/Others'),
+        'is_day_shift': openapi.Schema(type=openapi.TYPE_STRING, description='1- Day Shift | 0- Night Shift')
     }),
     responses={400: 'Bad Request'})
     def post(self, request):
         try:
+            map_dict = {
+                '0' : False,
+                '1' : True
+            }
             register = RegisterUserSerializer(data=request.data)
             if register.is_valid():
                 new_user = register.save()
@@ -50,7 +58,8 @@ class RegisterNurse(APIView):
                         aadhaar = request.data.get('aadhaar', ''),
                         blood_group = request.data.get('blood_group', ''),
                         age = int(request.data.get('age', '')),
-                        gender = request.data.get('gender', '')
+                        gender = request.data.get('gender', ''),
+                        is_day_shift = map_dict[request.data.get('is_day_shift', '1')]
                     )
                     
                     return JsonResponse(data={"nurse_id": nurse.id},status=status.HTTP_201_CREATED)
@@ -61,3 +70,42 @@ class RegisterNurse(APIView):
         except Exception as e:
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class NurseDashboard(APIView):
+    
+    def get(self, request):
+        try:
+            user_id = request.data.get('access', '')
+            user = get_user(user_id)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            nurse = Nurse.objects.get(user=user)
+            patients = nurse.patients.all()
+            ser = PatientSerializer(patients, many=True)
+
+            return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class NurseDashboardDetail(APIView):
+
+    def get(self, request):
+        try:
+            user_id = request.data.get('access', '')
+            user = get_user(user_id)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class TreatmentAPI(APIView):
+    def get(self, request):
+        try:
+            user_id = request.data.get('access', '')
+            user = get_user(user_id)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        nurse = Nurse.objects.get(user=user)
+        treatments = Treatment.objects.filter(nurse=nurse)
+        ser = TreatmentSerializer(treatments, many=True)
+        return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)

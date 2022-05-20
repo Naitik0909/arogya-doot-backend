@@ -1,3 +1,4 @@
+from pydoc import doc
 from django.shortcuts import render
 from django.http.response import JsonResponse
 from django.db import IntegrityError
@@ -10,9 +11,11 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.serializers import RegisterUserSerializer
+from .serializers import DoctorSerializer, TreatmentSerializer
 from .models import Patient
 from doctor.models import Doctor
 from nurse.models import Bed, Nurse
+from patient.utils import get_user
 
 class RegisterDoctor(APIView):
     
@@ -63,3 +66,45 @@ class RegisterDoctor(APIView):
         except Exception as e:
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class CompleteTreatment(APIView):
+
+    def post(self, request):
+
+        try:
+            user = request.data.get('access', '')
+            get_user(user)
+
+            patient_id = request.data.get('patient_id', '')
+            if patient_id != '':
+                patient = Patient.objects.get(id=patient_id)
+                doctor = Doctor.objects.get(user=user)
+
+                if patient.consulting_doctor == doctor:
+                    # find out the nurse with max number of patients
+                    all_nurses = Nurse.objects.all()
+                    max = 0
+                    max_nurse = None
+                    for nurse in all_nurses:
+                        count = nurse.patients.all().count()
+                        if count > max:
+                            max = count
+                            max_nurse = nurse
+
+                    # current_nurse = Nurse.objects.get(patients__in=)
+
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class DoctorDetail(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = request.data.get('access', '')
+            user = get_user(user_id)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        doc_id = int(kwargs["pk"])
+        ser = DoctorSerializer(Doctor.objects.get(id=doc_id))
+        return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+
