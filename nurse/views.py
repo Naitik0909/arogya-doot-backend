@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
-from rest_framework import status
+from rest_framework import status, generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -14,6 +14,7 @@ from .models import Patient
 from doctor.models import Doctor, Treatment
 from nurse.models import Bed, Nurse
 from patient.utils import get_user
+from users.utils import is_nurse
 from patient.serializers import PatientSerializer
 from doctor.serializers import TreatmentSerializer
 
@@ -126,3 +127,32 @@ class NurseTreatmentAPI(GenericAPIView):
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
  
+class NursePatientDetails(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
+            user = get_user(user_id)
+            if not user:
+                raise Exception("Invalid User")
+        except Exception as e:
+            return JsonResponse(data={"error" : str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            nurse = is_nurse(user)
+            if nurse:
+                patient_id = kwargs["pk"]
+                patient = Patient.objects.get(id=int(patient_id))
+                if(patient in nurse.patients.all()):
+                    ser = PatientSerializer(patient)
+                    return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+                else:
+                    raise Exception("This nurse is currently not treating this patient")
+            else:
+                raise Exception("Only Nurses can view this data")
+        except Exception as e:
+            return JsonResponse(data={"error" : str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# class NurseAddTreatment(APIView):
+    
+#     def post(self, request, *args, **kwargs):
+        
