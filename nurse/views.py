@@ -4,6 +4,7 @@ from django.db import IntegrityError
 
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -76,8 +77,10 @@ class NurseDashboard(GenericAPIView):
 
     def get(self, request):
         try:
-            user_id = request.data.get('access', '')
+            user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
             user = get_user(user_id)
+            if not user:
+                raise Exception("Invalid User")
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -94,8 +97,10 @@ class NurseDashboardDetail(APIView):
 
     def get(self, request):
         try:
-            user_id = request.data.get('access', '')
+            user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
             user = get_user(user_id)
+            if not user:
+                raise Exception("Invalid User")
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -105,8 +110,10 @@ class NurseTreatmentAPI(GenericAPIView):
 
     def get(self, request):
         try:
-            user_id = request.data.get('access', '')
+            user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
             user = get_user(user_id)
+            if not user:
+                raise Exception("Invalid User")
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         try:

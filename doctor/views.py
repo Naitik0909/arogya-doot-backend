@@ -5,6 +5,7 @@ from django.db import IntegrityError
 
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -17,6 +18,8 @@ from nurse.models import Bed, Nurse
 from patient.utils import get_user
 
 class RegisterDoctor(APIView):
+
+    permission_classes = [AllowAny]
     
     @swagger_auto_schema(request_body=openapi.Schema(
     type=openapi.TYPE_OBJECT,
@@ -71,8 +74,10 @@ class CompleteTreatment(APIView):
     def post(self, request):
 
         try:
-            user = request.data.get('access', '')
-            get_user(user)
+            user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
+            user = get_user(user_id)
+            if not user:
+                raise Exception("Invalid User")
 
             patient_id = request.data.get('patient_id', '')
             if patient_id != '':
@@ -98,13 +103,17 @@ class CompleteTreatment(APIView):
 class DoctorDetail(GenericAPIView):
 
     serializer_class = DoctorSerializer
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        try:
-            user_id = request.data.get('access', '')
-            user = get_user(user_id)
-        except Exception as e:
-            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        # try:
+        #     user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
+        #     user = get_user(user_id)
+        #     if not user:
+        #         raise Exception("Invalid User")
+        # except Exception as e:
+        #     return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        # print(self.request.user)
         doc_id = int(kwargs["pk"])
         ser = self.serializer_class(Doctor.objects.get(id=doc_id))
         return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
@@ -116,8 +125,10 @@ class DoctorTreatmentAPI(GenericAPIView):
 
     def get(self, request):
         try:
-            user_id = request.data.get('access', '')
+            user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
             user = get_user(user_id)
+            if not user:
+                raise Exception("Invalid User")
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         doctor = Doctor.objects.get(user=user)
@@ -127,7 +138,9 @@ class DoctorTreatmentAPI(GenericAPIView):
 
     def post(self, request):
         try:
-            user_id = request.data.get('access', '')
+            user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
             user = get_user(user_id)
+            if not user:
+                raise Exception("Invalid User")
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
