@@ -117,7 +117,7 @@ class NurseTreatmentAPI(GenericAPIView):
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            patient_id = request.data.get('patient_id', '')
+            patient_id = request.GET.get('patient_id', '')
             nurse = Nurse.objects.get(user=user)
             treatments = Treatment.objects.filter(nurse=nurse, patient=Patient.objects.get(id=int(patient_id)))
             ser = self.serializer_class(treatments, many=True)
