@@ -32,6 +32,7 @@ class Doctor(models.Model):
     blood_group = models.CharField(choices=BLOOD_GROUP_CHOICES, max_length=5, null=True, blank=True)
     age = models.IntegerField(max_length=4, null=True, blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=10, null=True, blank=True)
+    working_days = models.CharField(max_length=20, null=True, blank=True)
   
     specialization = models.CharField(max_length=50, null=True, blank=True)
     location = models.CharField(max_length=50, null=True, blank=True)

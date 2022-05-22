@@ -55,6 +55,8 @@ class Bed(models.Model):
 
     bed_type = models.CharField(choices=BED_TYPE_CHOICES, max_length=100, null=True, blank=True)
     number = models.CharField(max_length=100, null=True, blank=True)
+    room_no = models.CharField(max_length=20, null=True, blank=True)
+    floor_no = models.CharField(max_length=20, null=True, blank=True)
     is_occupied = models.BooleanField(default=False)
 
     def __str__(self):
