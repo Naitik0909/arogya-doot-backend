@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path("register/", views.RegisterDoctor.as_view(), name="register_doctor"),
     path("doctor_info/<int:pk>/", views.DoctorDetail.as_view()),
-    # path("treatments/", views.TreatmentAPI.as_view())
+    path("treatment/", views.DoctorTreatmentAPI.as_view()),
+    path("observation/", views.DoctorObservation.as_view()),
 
 ]

@@ -1,7 +1,7 @@
 from pydoc import Doc
 from rest_framework import serializers
 
-from .models import Doctor, Treatment
+from .models import Doctor, Treatment, Observation
 
 class DoctorSerializer(serializers.ModelSerializer):
 
@@ -25,4 +25,14 @@ class TreatmentSerializer(serializers.ModelSerializer):
         extra_fields = ('nurse_name', )
 
     def get_nurse_name(self, obj):
-        return obj.nurse.user.first_name+' '+obj.nurse.user.last_name
+        try:
+            return obj.nurse.user.first_name+' '+obj.nurse.user.last_name
+        except:
+            # Nurse not assigned
+            return ""
+
+class ObservationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Observation
+        fields = '__all__'

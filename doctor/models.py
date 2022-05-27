@@ -45,20 +45,27 @@ class Doctor(models.Model):
 
 class Treatment(models.Model):
 
-    TREATMENT_CHOICES = (
-        ("Temperature", "Temperature"),
-        # ("Temperature", "Temperature"),
-        # ("Temperature", "Temperature"),
-        # ("Temperature", "Temperature"),
-        
-    )
-
-    nurse = models.ForeignKey(Nurse, on_delete=models.CASCADE)
+    nurse = models.ForeignKey(Nurse, on_delete=models.CASCADE, null=True, blank=True)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    treatment_type = models.CharField(max_length=50, null=True, blank=True, choices=TREATMENT_CHOICES)
-    treatment_value = models.CharField(max_length=100, null=True, blank=True)
-    detail = models.CharField(max_length=100, null=True, blank=True)
+    treatment = models.CharField(max_length=20, null=True, blank=True)
+    details = models.TextField(null=True, blank=True)
+
+    treatment_time = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    status = models.BooleanField(default=False)
+    
+class Observation(models.Model):
+
+    nurse = models.ForeignKey(Nurse, on_delete=models.CASCADE, null=True, blank=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    temperature = models.CharField(max_length=20, null=True, blank=True)
+    blood_pressure = models.CharField(max_length=20, null=True, blank=True)
+    oxygen_level = models.CharField(max_length=20, null=True, blank=True)
+    heart_rate = models.CharField(max_length=20, null=True, blank=True)
+    comment = models.CharField(max_length=100, null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     status = models.BooleanField(default=False)
-    

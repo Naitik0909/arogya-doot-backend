@@ -11,3 +11,5 @@ django-environ
 django_heroku
 gunicorn
 drf-yasg
+psycopg2
+django-environ

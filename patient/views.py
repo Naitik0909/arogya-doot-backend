@@ -90,14 +90,3 @@ class RegisterPatient(APIView):
         except Exception as e:
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class NursePatientDetails(APIView):
-
-    def get(self, request):
-        try:
-            token = request.data.get("access", "")
-            user = get_user(token)
-        except Exception as e:
-            return JsonResponse(data={"error" : str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
