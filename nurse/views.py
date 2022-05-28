@@ -4,19 +4,19 @@ from django.db import IntegrityError
 
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status, generics
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.serializers import RegisterUserSerializer
 from .models import Patient
-from doctor.models import Doctor, Treatment
+from doctor.models import Doctor, Treatment, Observation
 from nurse.models import Bed, Nurse
 from patient.utils import get_user
 from users.utils import is_nurse
 from patient.serializers import PatientSerializer
-from doctor.serializers import TreatmentSerializer
+from doctor.serializers import TreatmentSerializer, ObservationSerializer
 
 class RegisterNurse(APIView):
     
@@ -108,15 +108,11 @@ class NurseDashboardDetail(APIView):
 class NurseTreatmentAPI(GenericAPIView):
 
     serializer_class = TreatmentSerializer
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            user_id = self.request.META.get('HTTP_AUTHORIZATION')[7:]
-            user = get_user(user_id)
-            if not user:
-                raise Exception("Invalid User")
-        except Exception as e:
-            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user
+        
         try:
             patient_id = request.GET.get('patient_id', '')
             nurse = Nurse.objects.get(user=user)
@@ -152,7 +148,59 @@ class NursePatientDetails(APIView):
         except Exception as e:
             return JsonResponse(data={"error" : str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-# class NurseAddTreatment(APIView):
-    
-#     def post(self, request, *args, **kwargs):
+
+class NurseObservationAPI(GenericAPIView):
+
+    serializer_class = ObservationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        try:
+            patient_id = request.GET.get('patient_id', '')
+            nurse = Nurse.objects.get(user=user)
+            patient = Patient.objects.get(id=int(patient_id))
+        except:
+            return JsonResponse(data={"error": "Invalid User"}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            # Check if that Nurse is treating that patient:
+            if patient in nurse.patients.all():
+                observations = Observation.objects.filter(patient=patient)
+                ser = self.serializer_class(observations, many=True)
+                return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+            else:
+                return JsonResponse(data={"error": "You are not treating this patient"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        user = request.user
+        
+        try:
+            patient_id = request.data.get('patient_id', '')
+            nurse = Nurse.objects.get(user=user)
+            patient = Patient.objects.get(id=int(patient_id))
+        except Exception as e:
+            print(e)
+            return JsonResponse(data={"error": "Invalid User"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            # Check if that nurse is treating that patient:
+            if patient in nurse.patients.all():
+                observations = Observation.objects.create(
+                    patient=patient,
+                    nurse=nurse,
+                    temperature = request.data.get('temperature', ''),
+                    blood_pressure = request.data.get('blood_pressure', ''),
+                    oxygen_level = request.data.get('oxygen_level', ''),
+                    heart_rate = request.data.get('heart_rate', ''),
+                    comment = request.data.get('comment', '')
+                )
+                return JsonResponse(data={"observation_id": observations.id}, status=status.HTTP_201_CREATED)
+            else:
+                return JsonResponse(data={"error": "You are not treating this patient"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         

@@ -4,15 +4,17 @@ from django.db import IntegrityError
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import GenericAPIView
 from rest_framework import status, generics, pagination
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.serializers import RegisterUserSerializer
+from .serializers import PatientSerializer
 from .models import Patient
 from doctor.models import Doctor
-from nurse.models import Bed
+from nurse.models import Bed, Nurse
 from .utils import get_user, allocate_nurse
 
 class RegisterPatient(APIView):
@@ -90,3 +92,20 @@ class RegisterPatient(APIView):
         except Exception as e:
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# class PatientDetailsAPI(GenericAPIView):
+    
+#     serializer_class = PatientSerializer
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         user = request.user
+
+#         try:
+#             nurse = Nurse.objects.get(user=user)
+#             patients = nurse.patients.all()
+#             ser = self.serializer_class(patients, many=True)
+
+#             return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
+#         except Exception as e:
+#             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,7 @@
+from multiprocessing.dummy import Array
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
 
 from patient.models import Patient
 from nurse.models import Nurse
@@ -32,7 +34,7 @@ class Doctor(models.Model):
     blood_group = models.CharField(choices=BLOOD_GROUP_CHOICES, max_length=5, null=True, blank=True)
     age = models.IntegerField(max_length=4, null=True, blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=10, null=True, blank=True)
-    working_days = models.CharField(max_length=20, null=True, blank=True)
+    working_days = ArrayField(models.IntegerField(blank=True),size=8)
   
     specialization = models.CharField(max_length=50, null=True, blank=True)
     location = models.CharField(max_length=50, null=True, blank=True)
