@@ -16,6 +16,7 @@ from .models import Patient
 from doctor.models import Doctor
 from nurse.models import Bed, Nurse
 from .utils import get_user, allocate_nurse
+from users.utils import is_nurse_or_doctor
 
 class RegisterPatient(APIView):
     
@@ -93,19 +94,76 @@ class RegisterPatient(APIView):
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-# class PatientDetailsAPI(GenericAPIView):
+class PatientDetailsAPI(GenericAPIView):
     
-#     serializer_class = PatientSerializer
-#     permission_classes = [IsAuthenticated]
+    serializer_class = PatientSerializer
+    permission_classes = [IsAuthenticated]
 
-#     def get(self, request):
-#         user = request.user
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        res = is_nurse_or_doctor(user)
 
-#         try:
-#             nurse = Nurse.objects.get(user=user)
-#             patients = nurse.patients.all()
-#             ser = self.serializer_class(patients, many=True)
+        try:
+            if res[0] == None:
+                return JsonResponse(data={"error": "Unauthorised"}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                patient_id = kwargs["pk"]
+                patient = Patient.objects.get(id=int(patient_id))
 
-#             return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                if res[1] == 0:
+                    # Its a nurse
+                    nurse = res[0]
+                    if(patient in nurse.patients.all()):
+                        ser = PatientSerializer(patient)
+                        return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+                    else:
+                        return JsonResponse(data={"error": "This doctor is currently not treating this patient"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+                elif res[1] == 1:
+                    # Its a doctor
+                    doctor = res[0]
+                    if(doctor == patient.consulting_doctor):
+                        ser = PatientSerializer(patient)
+                        return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+                    else:
+                        return JsonResponse(data={"error": "This doctor is currently not treating this patient"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class PatientListAPI(GenericAPIView):
+    
+    serializer_class = PatientSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        res = is_nurse_or_doctor(user)
+
+        try:
+            if res[0] == None:
+                return JsonResponse(data={"error": "Unauthorised"}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                if res[1] == 0:
+                    # Its a nurse
+                    nurse = res[0]
+                    patients = nurse.patients.all()
+                    ser = self.serializer_class(patients, many=True)
+
+                    return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
+
+
+                elif res[1] == 1:
+                    # Its a doctor
+                    doctor = res[0]
+                    patients = Patient.objects.filter(consulting_doctor=doctor)
+                    ser = self.serializer_class(patients, many=True)
+                    return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+

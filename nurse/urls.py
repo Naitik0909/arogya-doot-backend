@@ -9,5 +9,6 @@ urlpatterns = [
     path("dashboard/", views.NurseDashboard.as_view(), name="dashboard"),
     path("treatments/", views.NurseTreatmentAPI.as_view()),
     path("patient_details/<int:pk>/", views.NursePatientDetails.as_view()),
-    path("observation/", views.NurseObservationAPI.as_view())
+    path("observation/", views.NurseObservationAPI.as_view()),
+    path('toggle_treatment/<int:pk>/', views.ToggleTreatmentStatus.as_view())
 ]

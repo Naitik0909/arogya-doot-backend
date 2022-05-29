@@ -18,6 +18,8 @@ from users.utils import is_nurse
 from patient.serializers import PatientSerializer
 from doctor.serializers import TreatmentSerializer, ObservationSerializer
 
+from datetime import datetime
+
 class RegisterNurse(APIView):
     
 
@@ -203,4 +205,38 @@ class NurseObservationAPI(GenericAPIView):
 
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+class ToggleTreatmentStatus(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        try:
+            nurse = is_nurse(user)
+            if not nurse:
+                return JsonResponse(data={"error": "You are not a nurse"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            treatment_id = kwargs["pk"]
+            patient_id = request.data.get('patient_id', '')
+            
+            patient = Patient.objects.get(id=int(patient_id))
+            treatment = Treatment.objects.get(id=int(treatment_id), patient=patient)
+
+            if patient not in nurse.patients.all():
+                return JsonResponse(data={"error": "You are not treating this patient"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            if treatment.status == True:
+                treatment.status = False
+                treatment.completed_at = None
+
+            elif treatment.status == False:
+                treatment.status = True
+                treatment.completed_at = datetime.now()
+
+            treatment.save()
+            return JsonResponse(data={"success": "Treatment status updated"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -161,11 +161,10 @@ class DoctorTreatmentAPI(GenericAPIView):
                 )
                 return JsonResponse(data={"treatment_id": treatment.id}, status=status.HTTP_201_CREATED)
             else:
-                return JsonResponse(data={"error": "You are not treating this patient"}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse(data={"error": "You are not treating this patient"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
+    
 class DoctorObservation(GenericAPIView):
 
     serializer_class = ObservationSerializer
