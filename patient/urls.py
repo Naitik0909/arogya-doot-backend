@@ -14,5 +14,6 @@ urlpatterns = [
     path("landing_page_pie/", LandingPagePieAPI.as_view()),
     path("landing_page_graph/", LandingPageGraphAPI.as_view()),
     path("report/", ReportAPI.as_view()),
+    path("temp_graph/", TempGraphAPI.as_view()),
 
 ]

@@ -305,3 +305,25 @@ class ReportAPI(GenericAPIView):
             return JsonResponse(data={"error": "Patient does not exist"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class TempGraphAPI(GenericAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            patient = Patient.objects.get(user=user)
+            data = {}
+
+            observations = Observation.objects.filter(patient=patient)
+
+            for obs in observations:
+                if obs.created_at.strftime("%-d %b") in data:
+                    data[obs.created_at.strftime("%-d %b")].append(obs.temperature)
+                else:
+                    data[obs.created_at.strftime("%-d %b")] = [obs.temperature]
+
+            return JsonResponse(data=data, safe=False, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
