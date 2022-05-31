@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Patient
-from doctor.models import Treatment
+from doctor.models import Treatment, Observation
 
 class PatientSerializer(serializers.ModelSerializer):
 
@@ -19,6 +19,8 @@ class PatientSerializer(serializers.ModelSerializer):
     def get_temperature(self, obj):
         try:
             last_treatment = Treatment.objects.filter(patient=obj, treatment_type="Temperature")[0]
+            last_treatment = Observation.objects.filter(patient=obj)[0]
+
             return last_treatment.treatment_value
         except:
             return ""
