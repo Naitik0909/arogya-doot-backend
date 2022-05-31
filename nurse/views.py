@@ -18,8 +18,15 @@ from patient.utils import get_user
 from users.utils import is_nurse
 from patient.serializers import PatientSerializer
 from doctor.serializers import TreatmentSerializer, ObservationSerializer
+from .serializers import NurseSerializer
 
-from datetime import datetime
+from datetime import datetime as dt
+import datetime
+
+OBSERVATION_ONE_HOUR = 13
+OBSERVATION_TWO_HOUR = 19
+OBSERVATION_THREE_HOUR = 23
+OBSERVATION_THREE_MINUTES = 59
 
 class RegisterNurse(APIView):
     
@@ -168,9 +175,7 @@ class NurseObservationAPI(GenericAPIView):
             return JsonResponse(data={"error": "Invalid User"}, status=status.HTTP_401_UNAUTHORIZED)
         try:
             # Check if that Nurse is treating that patient:
-            if patient in nurse.patients.all():                
-                count_today = Observation.objects.filter(nurse=nurse, created_at=datetime.today().date()).count()
-                print(count_today)
+            if patient in nurse.patients.all():
                 observations = Observation.objects.filter(patient=patient)
                 ser = self.serializer_class(observations, many=True)
                 return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
@@ -193,14 +198,31 @@ class NurseObservationAPI(GenericAPIView):
         try:
             # Check if that nurse is treating that patient:
             if patient in nurse.patients.all():
-                # cur_date = datetime.now()
-                # if cur_date.time() < datetime.time(13, 0, 0, 0):
-                #     if Observation.objects.filter(created_at__lt=datetime.time(13, 0, 0, 0))
-                count_today = Observation.objects.filter(created_at=datetime.today().date()).count()
-                print(count_today)
-                
-                # if prev_observations.count() == 0:
-# 
+                created_at_list = Observation.objects.filter(patient=patient).values_list('created_at', flat=True)
+                today = dt.now()
+                cur_time = today.time()
+                created_today = [cur for cur in created_at_list if cur.date() == today.date()]
+                if len(created_today) != 0:
+                    if cur_time < datetime.time(OBSERVATION_ONE_HOUR, 0, 0):
+                        # check if observation already created in this slot
+                        for day in created_today:
+                            if day.time() < datetime.time(OBSERVATION_ONE_HOUR, 0, 0):
+                                return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
+
+                    if cur_time >= datetime.time(OBSERVATION_ONE_HOUR, 0, 0) and cur_time < datetime.time(OBSERVATION_TWO_HOUR, 0, 0):
+                        # check if observation already created in this slot
+                        print("HERERERERER")
+                        for day in created_today:
+                            print(day.time())
+                            if day.time() >= datetime.time(OBSERVATION_ONE_HOUR, 0, 0) and day.time() < datetime.time(OBSERVATION_TWO_HOUR, 0, 0):
+                                return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
+
+                    if cur_time >= datetime.time(OBSERVATION_TWO_HOUR, 0, 0) and cur_time <= datetime.time(OBSERVATION_THREE_HOUR, OBSERVATION_THREE_MINUTES, 0):
+                        # check if observation already created in this slot
+                        for day in created_today:
+                            if day.time() >= datetime.time(OBSERVATION_TWO_HOUR, 0, 0) and day.time() <= datetime.time(OBSERVATION_THREE_HOUR, OBSERVATION_THREE_MINUTES, 0):
+                                return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
+                    
                 
                 observations = Observation.objects.create(
                     patient=patient,
@@ -211,6 +233,7 @@ class NurseObservationAPI(GenericAPIView):
                     heart_rate = request.data.get('heart_rate', ''),
                     comment = request.data.get('comment', '')
                 )
+
                 return JsonResponse(data={"observation_id": observations.id}, status=status.HTTP_201_CREATED)
             else:
                 return JsonResponse(data={"error": "You are not treating this patient"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -250,5 +273,25 @@ class ToggleTreatmentStatus(APIView):
             treatment.save()
             return JsonResponse(data={"success": "Treatment status updated"}, status=status.HTTP_200_OK)
 
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class OperatedNurseList(GenericAPIView):
+
+    serializer_class = NurseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        try:
+            patient = Patient.objects.get(id=int(request.GET.get('patient_id', '')))
+
+            nurse_list = Nurse.objects.none()
+
+            for nurse in Nurse.objects.all():
+                if patient in nurse.patients.all():
+                    nurse_list |= Nurse.objects.filter(id=nurse.id)
+            ser = self.serializer_class(nurse_list, many=True)
+            return JsonResponse(data=ser.data, status=status.HTTP_200_OK, safe=False)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
