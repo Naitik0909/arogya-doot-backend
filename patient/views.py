@@ -9,11 +9,12 @@ from rest_framework.generics import GenericAPIView
 from rest_framework import status, generics, pagination
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from doctor.serializers import ObservationSerializer, TreatmentSerializer
 
 from users.serializers import RegisterUserSerializer
 from .serializers import PatientSerializer
 from .models import Patient
-from doctor.models import Doctor
+from doctor.models import Doctor, Observation, Treatment
 from nurse.models import Bed, Nurse
 from .utils import get_user, allocate_nurse
 from users.utils import is_nurse_or_doctor
@@ -94,6 +95,22 @@ class RegisterPatient(APIView):
             print(e)
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+class CurrentPatientDetails(GenericAPIView):
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = PatientSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user = request.user
+            patient = Patient.objects.get(user=user)
+            serializer = self.serializer_class(patient)
+            return JsonResponse(data=serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class PatientDetailsAPI(GenericAPIView):
     
     serializer_class = PatientSerializer
@@ -166,4 +183,41 @@ class PatientListAPI(GenericAPIView):
 
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class PatientObservationsAPI(GenericAPIView):
+
+    serializer_class = ObservationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        try:
+            user = request.user
+            patient = Patient.objects.get(user=user)
+            observations = Observation.objects.filter(patient=patient)
+            ser = self.serializer_class(observations, many=True)
+            return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
+        except Patient.DoesNotExist:
+            return JsonResponse(data={"error": "Patient does not exist"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class PatientTreatmentsAPI(GenericAPIView):
+
+    serializer_class = TreatmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        try:
+            user = request.user
+            patient = Patient.objects.get(user=user)
+            treatments = Treatment.objects.filter(patient=patient)
+            ser = self.serializer_class(treatments, many=True)
+            return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
+        except Patient.DoesNotExist:
+            return JsonResponse(data={"error": "Patient does not exist"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 

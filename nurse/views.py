@@ -1,3 +1,4 @@
+from itertools import count
 from django.shortcuts import render
 from django.http.response import JsonResponse
 from django.db import IntegrityError
@@ -167,7 +168,9 @@ class NurseObservationAPI(GenericAPIView):
             return JsonResponse(data={"error": "Invalid User"}, status=status.HTTP_401_UNAUTHORIZED)
         try:
             # Check if that Nurse is treating that patient:
-            if patient in nurse.patients.all():
+            if patient in nurse.patients.all():                
+                count_today = Observation.objects.filter(nurse=nurse, created_at=datetime.today().date()).count()
+                print(count_today)
                 observations = Observation.objects.filter(patient=patient)
                 ser = self.serializer_class(observations, many=True)
                 return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
@@ -190,6 +193,15 @@ class NurseObservationAPI(GenericAPIView):
         try:
             # Check if that nurse is treating that patient:
             if patient in nurse.patients.all():
+                # cur_date = datetime.now()
+                # if cur_date.time() < datetime.time(13, 0, 0, 0):
+                #     if Observation.objects.filter(created_at__lt=datetime.time(13, 0, 0, 0))
+                count_today = Observation.objects.filter(created_at=datetime.today().date()).count()
+                print(count_today)
+                
+                # if prev_observations.count() == 0:
+# 
+                
                 observations = Observation.objects.create(
                     patient=patient,
                     nurse=nurse,
