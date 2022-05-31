@@ -220,4 +220,16 @@ class PatientTreatmentsAPI(GenericAPIView):
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+class LandingPageAPI(APIView):
 
+    def get(self, request):
+        try:
+            data = {
+                "total_beds" : Bed.objects.all().count(),
+                "total_patients" : Patient.objects.all().count(),
+                "total_doctors" : Doctor.objects.all().count(),
+                "total_nurses" : Nurse.objects.all().count(),
+            }
+            return JsonResponse(data=data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

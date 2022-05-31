@@ -139,7 +139,7 @@ class GetUserDetails(generics.GenericAPIView):
                 nurse.aadhaar = request.data.get('aadhaar', '')
                 # nurse.is_day_shift = request.data.get('is_day_shift', '')
                 nurse.save()
-            return JsonResponse(status=status.HTTP_200_OK)
+            return JsonResponse(data={"success": "Updated Data"}, status=status.HTTP_200_OK)
             
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
