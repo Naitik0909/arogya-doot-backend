@@ -17,6 +17,8 @@ from doctor.models import Doctor, Treatment, Observation
 from nurse.models import Bed, Nurse
 from patient.utils import get_user
 
+import itertools
+
 class RegisterDoctor(APIView):
 
     permission_classes = [AllowAny]
@@ -237,14 +239,20 @@ class TopDoctorsAPI(APIView):
 
     def get(self, request):
         doc_list = {}
-        doctors = Doctor.objects.all()
         patients = Patient.objects.all()
+        doc_qs = Doctor.objects.none()
 
         for pat in patients:
             if pat.consulting_doctor.id not in doc_list:
                 doc_list[pat.consulting_doctor.id] = 1
             else:
                 doc_list[pat.consulting_doctor.id] += 1
-        doc_list = {k: v for k, v in sorted(doc_list.items(), key=lambda item: item[1])}
+        doc_list = {k: v for k, v in sorted(doc_list.items(), key=lambda item: item[1], reverse=True)}
+        doc_list = dict(itertools.islice(doc_list.items(), 3))
 
-        return JsonResponse(data=doc_list, safe=False,status=status.HTTP_200_OK)
+        for key, value in doc_list.items():
+            doc_qs |= Doctor.objects.filter(id=key)
+        
+        ser = DoctorSerializer(doc_qs, many=True)
+
+        return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)

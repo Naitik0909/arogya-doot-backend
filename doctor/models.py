@@ -32,9 +32,9 @@ class Doctor(models.Model):
     dob = models.DateField(null=True, blank=True)
     aadhaar = models.CharField(max_length=15, null=True, blank=True)
     blood_group = models.CharField(choices=BLOOD_GROUP_CHOICES, max_length=5, null=True, blank=True)
-    age = models.IntegerField(max_length=4, null=True, blank=True)
+    age = models.IntegerField(null=True, blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=10, null=True, blank=True)
-    working_days = ArrayField(models.IntegerField(blank=True),size=8)
+    working_days = ArrayField(models.IntegerField(blank=True),size=8, null=True, blank=True)
   
     specialization = models.CharField(max_length=50, null=True, blank=True)
     location = models.CharField(max_length=50, null=True, blank=True)

@@ -30,7 +30,7 @@ class Nurse(models.Model):
     dob = models.DateField(null=True, blank=True)
     aadhaar = models.CharField(max_length=15, null=True, blank=True)
     blood_group = models.CharField(choices=BLOOD_GROUP_CHOICES, max_length=5, null=True, blank=True)
-    age = models.IntegerField(max_length=4, null=True, blank=True)
+    age = models.IntegerField(null=True, blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=10, null=True, blank=True)
     patients = models.ManyToManyField("patient.Patient", blank=True)
 

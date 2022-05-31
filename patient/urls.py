@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 
-from .views import CurrentPatientDetails, PatientListAPI, RegisterPatient, PatientDetailsAPI, PatientObservationsAPI, PatientTreatmentsAPI
+from .views import *
 
 urlpatterns = [
     path("register/", RegisterPatient.as_view(), name="register"),
@@ -10,5 +10,8 @@ urlpatterns = [
     path("current_patient_details/", CurrentPatientDetails.as_view()),
     path("observations/", PatientObservationsAPI.as_view()),
     path("treatments/", PatientTreatmentsAPI.as_view()),
+    path("landing_stats/",LandingPageAPI.as_view()),
+    path("landing_page_pie/", LandingPagePieAPI.as_view()),
+    path("landing_page_graph/", LandingPageGraphAPI.as_view()),
 
 ]

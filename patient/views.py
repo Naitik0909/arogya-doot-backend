@@ -19,6 +19,8 @@ from nurse.models import Bed, Nurse
 from .utils import get_user, allocate_nurse
 from users.utils import is_nurse_or_doctor
 
+from datetime import datetime
+
 class RegisterPatient(APIView):
     
 
@@ -230,6 +232,41 @@ class LandingPageAPI(APIView):
                 "total_doctors" : Doctor.objects.all().count(),
                 "total_nurses" : Nurse.objects.all().count(),
             }
+            return JsonResponse(data=data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class LandingPagePieAPI(APIView):
+
+    def get(self, request):
+        try:
+            data={}
+            bed_type = ["General", "Private", "Deluxe"]
+
+            for bed in bed_type:
+                data[bed] = {
+                    "total": Bed.objects.filter(bed_type=bed).count(),
+                    "occupied": Bed.objects.filter(bed_type=bed, is_occupied=True).count()
+                }
+
+            
+            return JsonResponse(data=data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class LandingPageGraphAPI(APIView):
+
+    def get(self, request):
+        try:
+            data={}
+
+            for pat in Patient.objects.all():
+                month = datetime.strftime(pat.created_at, '%B')
+                if month in data:
+                    data[month] += 1
+                else:
+                    data[month] = 1
+            
             return JsonResponse(data=data, status=status.HTTP_200_OK)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
