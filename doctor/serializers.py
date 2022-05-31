@@ -17,13 +17,14 @@ class DoctorSerializer(serializers.ModelSerializer):
         return obj.user.first_name+' '+obj.user.last_name
 
     def get_working_days(self, obj):
-        working_days = obj.working_days.replace('{', '')
-        working_days = working_days.replace('}', '')
-        # working_days[0] = '['
-        # working_days[-1] = ']'
-        print(working_days)
-
-        return working_days.split(",")
+        try:
+            working_days = obj.working_days.replace('{', '')
+            working_days = working_days.replace('}', '')
+            # working_days[0] = '['
+            # working_days[-1] = ']'
+            return working_days.split(",")
+        except:
+            return ""
 
 class TreatmentSerializer(serializers.ModelSerializer):
 

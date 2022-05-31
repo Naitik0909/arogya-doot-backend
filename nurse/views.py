@@ -126,7 +126,7 @@ class NurseTreatmentAPI(GenericAPIView):
         try:
             patient_id = request.GET.get('patient_id', '')
             nurse = Nurse.objects.get(user=user)
-            treatments = Treatment.objects.filter(nurse=nurse, patient=Patient.objects.get(id=int(patient_id)))
+            treatments = Treatment.objects.filter(patient=Patient.objects.get(id=int(patient_id)))
             ser = self.serializer_class(treatments, many=True)
             return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
         except Exception as e:
@@ -198,30 +198,30 @@ class NurseObservationAPI(GenericAPIView):
         try:
             # Check if that nurse is treating that patient:
             if patient in nurse.patients.all():
-                created_at_list = Observation.objects.filter(patient=patient).values_list('created_at', flat=True)
-                today = dt.now()
-                cur_time = today.time()
-                created_today = [cur for cur in created_at_list if cur.date() == today.date()]
-                if len(created_today) != 0:
-                    if cur_time < datetime.time(OBSERVATION_ONE_HOUR, 0, 0):
-                        # check if observation already created in this slot
-                        for day in created_today:
-                            if day.time() < datetime.time(OBSERVATION_ONE_HOUR, 0, 0):
-                                return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
+                # created_at_list = Observation.objects.filter(patient=patient).values_list('created_at', flat=True)
+                # today = dt.now()
+                # cur_time = today.time()
+                # created_today = [cur for cur in created_at_list if cur.date() == today.date()]
+                # if len(created_today) != 0:
+                #     if cur_time < datetime.time(OBSERVATION_ONE_HOUR, 0, 0):
+                #         # check if observation already created in this slot
+                #         for day in created_today:
+                #             if day.time() < datetime.time(OBSERVATION_ONE_HOUR, 0, 0):
+                #                 return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
 
-                    if cur_time >= datetime.time(OBSERVATION_ONE_HOUR, 0, 0) and cur_time < datetime.time(OBSERVATION_TWO_HOUR, 0, 0):
-                        # check if observation already created in this slot
-                        print("HERERERERER")
-                        for day in created_today:
-                            print(day.time())
-                            if day.time() >= datetime.time(OBSERVATION_ONE_HOUR, 0, 0) and day.time() < datetime.time(OBSERVATION_TWO_HOUR, 0, 0):
-                                return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
+                #     if cur_time >= datetime.time(OBSERVATION_ONE_HOUR, 0, 0) and cur_time < datetime.time(OBSERVATION_TWO_HOUR, 0, 0):
+                #         # check if observation already created in this slot
+                #         print("HERERERERER")
+                #         for day in created_today:
+                #             print(day.time())
+                #             if day.time() >= datetime.time(OBSERVATION_ONE_HOUR, 0, 0) and day.time() < datetime.time(OBSERVATION_TWO_HOUR, 0, 0):
+                #                 return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
 
-                    if cur_time >= datetime.time(OBSERVATION_TWO_HOUR, 0, 0) and cur_time <= datetime.time(OBSERVATION_THREE_HOUR, OBSERVATION_THREE_MINUTES, 0):
-                        # check if observation already created in this slot
-                        for day in created_today:
-                            if day.time() >= datetime.time(OBSERVATION_TWO_HOUR, 0, 0) and day.time() <= datetime.time(OBSERVATION_THREE_HOUR, OBSERVATION_THREE_MINUTES, 0):
-                                return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
+                #     if cur_time >= datetime.time(OBSERVATION_TWO_HOUR, 0, 0) and cur_time <= datetime.time(OBSERVATION_THREE_HOUR, OBSERVATION_THREE_MINUTES, 0):
+                #         # check if observation already created in this slot
+                #         for day in created_today:
+                #             if day.time() >= datetime.time(OBSERVATION_TWO_HOUR, 0, 0) and day.time() <= datetime.time(OBSERVATION_THREE_HOUR, OBSERVATION_THREE_MINUTES, 0):
+                #                 return JsonResponse(data={"error": "Observation already taken in this time slot"}, status=status.HTTP_400_BAD_REQUEST)
                     
                 
                 observations = Observation.objects.create(
@@ -265,10 +265,12 @@ class ToggleTreatmentStatus(APIView):
             if treatment.status == True:
                 treatment.status = False
                 treatment.completed_at = None
+                treatment.nurse = None
 
             elif treatment.status == False:
                 treatment.status = True
                 treatment.completed_at = datetime.now()
+                treatment.nurse = nurse
 
             treatment.save()
             return JsonResponse(data={"success": "Treatment status updated"}, status=status.HTTP_200_OK)

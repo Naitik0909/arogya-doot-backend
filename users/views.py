@@ -59,15 +59,24 @@ class GetUserDetails(generics.GenericAPIView):
         try:
             ser = None
             doctor = is_doctor(user)
+            role = ""
             if doctor:
                 ser = DoctorSerializer(doctor)
+                role = "Doctor"
             nurse = is_nurse(user)
             if nurse:
                 ser = NurseSerializer(nurse)
+                role = "Nurse"
             patient = is_patient(user)
             if patient:
                 ser = PatientSerializer(patient)
-            return JsonResponse(ser.data, safe=False, status=status.HTTP_200_OK)
+                role = "Patient"
+            final_data = {
+                "details": ser.data,
+                "role": role
+            }
+
+            return JsonResponse(final_data, safe=False, status=status.HTTP_200_OK)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
