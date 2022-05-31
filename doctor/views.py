@@ -165,7 +165,7 @@ class DoctorTreatmentAPI(GenericAPIView):
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
-    def patch(self, request):
+    def put(self, request):
         user = request.user
         try:
             treatment_id = request.data.get('treatment_id', '')
