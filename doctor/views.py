@@ -256,3 +256,15 @@ class TopDoctorsAPI(APIView):
         ser = DoctorSerializer(doc_qs, many=True)
 
         return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+
+class DoctorsList(GenericAPIView):
+
+    serializer_class = DoctorSerializer
+
+    def get(self, request):
+        try:
+            doctors = Doctor.objects.all()
+            ser = self.serializer_class(doctors, many=True)
+            return JsonResponse(data=ser.data, safe=False,status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
