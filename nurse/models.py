@@ -71,4 +71,4 @@ class Report(models.Model):
     report_file = models.FileField(upload_to=user_directory_path, null=True, blank=True)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+    uploaded_by = models.CharField(max_length=50, null=True, blank=True)

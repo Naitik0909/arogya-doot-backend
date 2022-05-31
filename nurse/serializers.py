@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Nurse
+from .models import Nurse, Report
 
 class NurseSerializer(serializers.ModelSerializer):
 
@@ -13,3 +13,9 @@ class NurseSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.user.first_name+' '+obj.user.last_name
+
+class ReportSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Report
+        fields = '__all__'

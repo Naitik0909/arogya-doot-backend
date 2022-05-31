@@ -13,9 +13,10 @@ from doctor.serializers import ObservationSerializer, TreatmentSerializer
 
 from users.serializers import RegisterUserSerializer
 from .serializers import PatientSerializer
+from nurse.serializers import ReportSerializer
 from .models import Patient
 from doctor.models import Doctor, Observation, Treatment
-from nurse.models import Bed, Nurse
+from nurse.models import Bed, Nurse, Report
 from .utils import get_user, allocate_nurse
 from users.utils import is_nurse_or_doctor
 
@@ -268,5 +269,39 @@ class LandingPageGraphAPI(APIView):
                     data[month] = 1
             
             return JsonResponse(data=data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class ReportAPI(GenericAPIView):
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReportSerializer
+
+    def get(self, request):
+        try:
+            patient = Patient.objects.get(id=int(request.GET.get("patient_id")))
+            reports = Report.objects.filter(patient=patient)
+            ser = self.serializer_class(reports, many=True)
+            return JsonResponse(data=ser.data, safe=False, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def post(self, request):
+        try:
+            # user = request.user
+            patient = Patient.objects.get(id=int(request.POST["patient_id"]))
+            report = request.FILES.get('report_file')
+            report_obj = Report.objects.create(
+                patient = patient,
+                report_name = request.POST.get('report_name', ''),
+                report_file = report,
+                uploaded_by = f"{request.user.first_name} {request.user.last_name}"
+            )
+
+            return JsonResponse(data={"status": "success"}, status=status.HTTP_201_CREATED)
+            
+        except Patient.DoesNotExist:
+            return JsonResponse(data={"error": "Patient does not exist"}, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

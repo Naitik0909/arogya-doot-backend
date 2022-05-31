@@ -13,5 +13,6 @@ urlpatterns = [
     path("landing_stats/",LandingPageAPI.as_view()),
     path("landing_page_pie/", LandingPagePieAPI.as_view()),
     path("landing_page_graph/", LandingPageGraphAPI.as_view()),
+    path("report/", ReportAPI.as_view()),
 
 ]

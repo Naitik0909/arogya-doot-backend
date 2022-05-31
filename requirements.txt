@@ -13,3 +13,5 @@ gunicorn
 drf-yasg
 psycopg2
 django-environ
+django-storages
+boto3
