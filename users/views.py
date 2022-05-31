@@ -1,15 +1,22 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+import nurse
+
 
 from .serializers import RegisterUserSerializer, BlacklistTokenSerializer, CustomTokenObtainPairSerializer
+from .utils import is_doctor, is_nurse, is_patient
+from doctor.serializers import DoctorSerializer
+from patient.serializers import PatientSerializer
+from nurse.serializers import NurseSerializer
 
 class RegisterUser(APIView):
     permission_classes = [AllowAny]
@@ -42,3 +49,25 @@ class BlacklistToken(generics.GenericAPIView):   # For logout
 
 class LoginUser(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+
+class GetUserDetails(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        try:
+            ser = None
+            doctor = is_doctor(user)
+            if doctor:
+                ser = DoctorSerializer(doctor)
+            nurse = is_nurse(user)
+            if nurse:
+                ser = NurseSerializer(nurse)
+            patient = is_patient(user)
+            if patient:
+                ser = PatientSerializer(patient)
+            return JsonResponse(ser.data, safe=False, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
