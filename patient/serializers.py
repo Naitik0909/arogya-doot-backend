@@ -19,9 +19,10 @@ class PatientSerializer(serializers.ModelSerializer):
     def get_temperature(self, obj):
         try:
             # last_treatment = Treatment.objects.filter(patient=obj, treatment_type="Temperature")[0]
-            last_treatment = Observation.objects.filter(patient=obj)[0]
+            last_treatment = Observation.objects.filter(patient=obj).last()
 
-            return last_treatment.treatment_value
-        except:
+            return last_treatment.temperature
+        except Exception as e:
+            print(e)
             return ""
     
