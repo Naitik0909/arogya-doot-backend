@@ -269,7 +269,7 @@ class ToggleTreatmentStatus(APIView):
 
             elif treatment.status == False:
                 treatment.status = True
-                treatment.completed_at = dt.datetime.now()
+                treatment.completed_at = dt.now()
                 treatment.nurse = nurse
 
             treatment.save()
