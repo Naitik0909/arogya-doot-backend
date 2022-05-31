@@ -191,7 +191,7 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-# # Activate Django-Heroku.
+# Activate Django-Heroku.
 django_heroku.settings(locals())
 
 # AWS S33 Config for Media Files
