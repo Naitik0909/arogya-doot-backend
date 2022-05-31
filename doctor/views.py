@@ -231,3 +231,20 @@ class DoctorObservation(GenericAPIView):
 
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TopDoctorsAPI(APIView):
+
+    def get(self, request):
+        doc_list = {}
+        doctors = Doctor.objects.all()
+        patients = Patient.objects.all()
+
+        for pat in patients:
+            if pat.consulting_doctor.id not in doc_list:
+                doc_list[pat.consulting_doctor.id] = 1
+            else:
+                doc_list[pat.consulting_doctor.id] += 1
+        doc_list = {k: v for k, v in sorted(doc_list.items(), key=lambda item: item[1])}
+
+        return JsonResponse(data=doc_list, safe=False,status=status.HTTP_200_OK)

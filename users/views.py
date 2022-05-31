@@ -108,6 +108,7 @@ class GetUserDetails(generics.GenericAPIView):
                 patient.emergeny_contact_name = request.data.get('emergeny_contact_name', '')
                 patient.emergeny_contact_phone = request.data.get('emergeny_contact_phone', '')
                 patient.emergency_contact_relation = request.data.get('emergency_contact_relation', '')
+                patient.user.save()
                 patient.save()
             
             elif role == "Doctor":
@@ -124,6 +125,7 @@ class GetUserDetails(generics.GenericAPIView):
                 doctor.working_days = list(request.data.get('working_days', ''))
                 doctor.specialization = request.data.get('specialization', '')
                 doctor.location = request.data.get('location', '')
+                doctor.user.save()
                 doctor.save()
             
             elif role == "Nurse":
@@ -138,6 +140,7 @@ class GetUserDetails(generics.GenericAPIView):
                 nurse.blood_group = request.data.get('blood_group', '')
                 nurse.aadhaar = request.data.get('aadhaar', '')
                 # nurse.is_day_shift = request.data.get('is_day_shift', '')
+                nurse.user.save()
                 nurse.save()
             return JsonResponse(data={"success": "Updated Data"}, status=status.HTTP_200_OK)
             
