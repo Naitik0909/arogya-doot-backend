@@ -10,3 +10,5 @@ class NurseAdmin(admin.ModelAdmin):
     ordering=('user__first_name', 'user__last_name')
     list_filter = ('is_day_shift', )
     # search_fields = ['user__username', 'user__first_name', '__str__']
+
+admin.site.register(Report)
