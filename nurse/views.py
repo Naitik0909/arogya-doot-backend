@@ -257,7 +257,7 @@ class ToggleTreatmentStatus(APIView):
             patient_id = request.data.get('patient_id', '')
             
             patient = Patient.objects.get(id=int(patient_id))
-            treatment = Treatment.objects.get(id=int(treatment_id), patient=patient)
+            treatment = Treatment.objects.get(id=int(treatment_id))
 
             if patient not in nurse.patients.all():
                 return JsonResponse(data={"error": "You are not treating this patient"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -269,7 +269,7 @@ class ToggleTreatmentStatus(APIView):
 
             elif treatment.status == False:
                 treatment.status = True
-                treatment.completed_at = datetime.now()
+                treatment.completed_at = dt.datetime.now()
                 treatment.nurse = nurse
 
             treatment.save()
