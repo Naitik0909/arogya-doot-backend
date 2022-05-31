@@ -61,3 +61,14 @@ class Bed(models.Model):
 
     def __str__(self):
         return self.number
+
+def user_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return '{0}'.format(instance.patient.user.first_name)
+
+class Report(models.Model):
+    report_name = models.CharField(max_length=50, null=True, blank=True)
+    report_file = models.FileField(upload_to=user_directory_path, null=True, blank=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
