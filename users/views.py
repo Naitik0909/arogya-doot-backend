@@ -121,7 +121,7 @@ class GetUserDetails(generics.GenericAPIView):
                 doctor.gender = request.data.get('gender', '')
                 doctor.blood_group = request.data.get('blood_group', '')
                 doctor.aadhaar = request.data.get('aadhaar', '')
-                doctor.working_days = request.data.get('working_days', '')
+                doctor.working_days = list(request.data.get('working_days', ''))
                 doctor.specialization = request.data.get('specialization', '')
                 doctor.location = request.data.get('location', '')
                 doctor.save()

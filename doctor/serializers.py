@@ -22,7 +22,9 @@ class DoctorSerializer(serializers.ModelSerializer):
             working_days = working_days.replace('}', '')
             # working_days[0] = '['
             # working_days[-1] = ']'
-            return working_days.split(",")
+            working_days = working_days.split(",")
+            working_days = [int(x) for x in working_days]
+            return working_days
         except:
             return ""
 
