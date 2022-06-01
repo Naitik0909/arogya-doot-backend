@@ -18,6 +18,8 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     def get_working_days(self, obj):
         try:
+            if isinstance(obj.working_days, list):
+                return obj.working_days
             working_days = obj.working_days.replace('{', '')
             working_days = working_days.replace('}', '')
             # working_days[0] = '['
@@ -25,7 +27,8 @@ class DoctorSerializer(serializers.ModelSerializer):
             working_days = working_days.split(",")
             working_days = [int(x) for x in working_days]
             return working_days
-        except:
+        except Exception as e:
+            print(e)
             return ""
 
 class TreatmentSerializer(serializers.ModelSerializer):
