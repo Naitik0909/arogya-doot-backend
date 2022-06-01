@@ -340,21 +340,8 @@ class SOSMailAPI(GenericAPIView):
             patient_id = request.GET.get("patient_id")
             patient = Patient.objects.get(id=int(patient_id))
             send_email_to_user(patient.consulting_doctor.user.email, patient)
-            return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-class SOSSMSAPI(GenericAPIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-
-        try:
-            patient_id = request.GET.get("patient_id")
-            patient = Patient.objects.get(id=int(patient_id))
             send_sms_to_user("+919799374580", patient)
             return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+

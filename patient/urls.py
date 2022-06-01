@@ -16,5 +16,4 @@ urlpatterns = [
     path("report/", ReportAPI.as_view()),
     path("temp_graph/", TempGraphAPI.as_view()),
     path("SOS/", SOSMailAPI.as_view()),
-    path("SOS_SMS/", SOSSMSAPI.as_view())
 ]
