@@ -1,7 +1,8 @@
 from django.core.mail import send_mail
-import environ
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from twilio.rest import Client
+import environ
 import os
 
 from patient.models import Patient
@@ -35,5 +36,23 @@ def send_email_to_user(send_to, patient):
     try:
         sg= SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
         response=sg.send(msg)
+    except Exception as e:
+        print(e)
+
+def send_sms_to_user(phone, patient):
+    try:
+        account_sid = env('TWILIO_SID')
+        auth_token = env('TWILIO_AUTH_TOKEN')
+        client = Client(account_sid, auth_token) 
+        message = f'''Arogya Doot SOS Alert!! \n\nAn SOS call has been made by a patient. \nPlease contact the patient as soon as possible. \n\nPatient Details:- Name: {patient.user.first_name} \nPhone: {patient.phone} \nAllocated Bed no.: {patient.allocated_bed.room_no}\nFloor No.: {patient.allocated_bed.floor_no}'''
+
+        message = client.messages \
+                        .create(
+                            body=message,
+                            from_=env("TWILIO_PHONE_NO"),
+                            to=phone
+                        )
+
+        print(message.sid)
     except Exception as e:
         print(e)
