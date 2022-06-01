@@ -19,6 +19,7 @@ from doctor.models import Doctor, Observation, Treatment
 from nurse.models import Bed, Nurse, Report
 from .utils import get_user, allocate_nurse
 from users.utils import is_nurse_or_doctor
+from .mail_handler import send_email_to_user
 
 from datetime import datetime
 
@@ -325,5 +326,20 @@ class TempGraphAPI(GenericAPIView):
                     data[obs.created_at.strftime("%-d %b")] = [obs.temperature]
 
             return JsonResponse(data=data, safe=False, status=status.HTTP_200_OK)
+        except Exception as e:
+            return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class SOSMailAPI(GenericAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        try:
+            patient_id = request.GET.get("patient_id")
+            patient = Patient.objects.get(id=int(patient_id))
+            send_email_to_user("parmarnaitik0909@gmail.com", patient)
+            return JsonResponse(data={"status": "success"}, status=status.HTTP_200_OK)
         except Exception as e:
             return JsonResponse(data={"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
